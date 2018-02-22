@@ -1,0 +1,80 @@
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>FishTank Status</title>
+	<title id='Description'>Work in progress!</title>
+	
+	<link rel="stylesheet" type="text/css" href="temp.css">
+	<link rel="stylesheet" href="/jqwidgets/styles/jqx.base.css" type="text/css" />
+	
+	<link rel="apple-touch-icon" sizes="57x57" href="icon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="icon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="icon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="icon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="icon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="icon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="icon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="icon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="icon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192"  href="icon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="icon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+	<link rel="manifest" href="icon/manifest.json">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="icon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+	
+	<script type="text/javascript" src="/scripts/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxcore.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxdraw.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxgauge.js"></script>
+	<script type="text/javascript" src="/scripts/amcharts.js"></script>
+	<script type="text/javascript" src="/scripts/serial.js"></script>
+	<script type="text/javascript" src="/scripts/light.js"></script>
+	<script type="text/javascript" src="/scripts/dataloader.js"></script>
+	
+</head>
+
+<body style="min-width: 900px;">
+	<div id="globalNavContainer" style="margin: 10 10% 0 10%; min-width: 810px; ">
+		<ul>
+		  <li><a href="/index.html">Home</a></li>
+		  <li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn">Lights</a>
+			<div class="dropdown-content">
+				<a href="/lights.html">Main Lights</a>
+			</div>
+		  </li>
+		  <li><a href="/aircon/webcam.html">Live Webcam</a></li>
+		  <li><a class="active" href="/aircon/control.html">Aircon Control</a></li>
+		  <li><a href="/graph.html">High Res Graph</a></li>
+		  <li style="float: right; padding-right: 30px;"><button class="button" id="ReloadChart" type="button" runat="server" onclick="redrawChart()" type="button">Reload Chart</button></li>
+		  <li style="float: right;"><button class="button" id="toggleSMS" type="button" runat="server" onclick="toggleSMS(this)" type="button">Loading</button></li>
+		</ul>
+	</div>
+	<div id="main" style="position: relative;">
+		<div class="right-menu" style="width:20%; left: 10%;">
+			<button class="button" id="airconOn" type="button" runat="server" onclick="airconOn()" type="button">Aircon On</button>
+			<button class="button" id="airconOff" type="button" runat="server" onclick="airconOff()" type="button">Aircon Off</button>
+		</div>
+	</div>
+	
+	
+	
+	<script>
+	
+		function airconOn()
+		{
+			$.ajax({ type: 'POST', url: '/aircon/aircon_on.php', data: 'null', dataType:'text', success: function(response){	} });
+		}
+		
+		function airconOff()
+		{
+			$.ajax({ type: 'POST', url: '/aircon/aircon_off.php', data: 'null', dataType:'text', success: function(response){	} });
+		}
+
+		
+	</script>
+</body>
+</html>
+

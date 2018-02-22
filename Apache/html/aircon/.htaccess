@@ -1,0 +1,4 @@
+AuthName "Secure Area"
+AuthType Basic
+AuthUserFile /home/pi/TemperatureSensor/.htpasswd
+require valid-user

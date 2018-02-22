@@ -1,0 +1,314 @@
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>FishTank Status</title>
+	<title id='Description'>Work in progress!</title>
+	
+	<link rel="stylesheet" type="text/css" href="temp.css">
+	<link rel="stylesheet" href="/jqwidgets/styles/jqx.base.css" type="text/css" />
+	
+	<link rel="apple-touch-icon" sizes="57x57" href="icon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="icon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="icon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="icon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="icon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="icon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="icon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="icon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="icon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192"  href="icon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="icon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+	<link rel="manifest" href="icon/manifest.json">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="icon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+	
+	<script type="text/javascript" src="/scripts/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxcore.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxdraw.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxgauge.js"></script>
+	<script type="text/javascript" src="/scripts/amcharts.js"></script>
+	<script type="text/javascript" src="/scripts/serial.js"></script>
+	<script type="text/javascript" src="/scripts/light.js"></script>
+	<script type="text/javascript" src="/scripts/dataloader.js"></script>
+	
+</head>
+
+<body style="min-width: 1000px;">
+	<div id="globalNav">
+		<div id="globalNavContainer" style="margin: 10 10% 0 10%; min-width: 810px; ">
+			<ul>
+			  <li><a class="active" href="/index.html">Home</a></li>
+		      <li class="dropdown">
+				<a href="javascript:void(0)" class="dropbtn">Lights</a>
+				<div class="dropdown-content">
+					<a href="/lights.html">Main Lights</a>
+				</div>
+			  </li>
+			  <li><a href="/aircon/webcam.html">Live Webcam</a></li>
+			  <li><a href="/aircon/control.html">Aircon Control</a></li>
+			  <li><a href="/graph.html">High Res Graph</a></li>
+			  <li style="float: right; padding-right: 30px;"><button class="button" id="ReloadChart" type="button" runat="server" onclick="redrawChart()" type="button">Reload Chart</button></li>
+			  <li style="float: right;"><button class="button" id="toggleSMS" type="button" runat="server" onclick="toggleSMS(this)" type="button">Loading</button></li>
+			</ul>
+		</div>
+	</div>
+	<div id="main" style="position: relative;">
+		<div id="gaugeArea" style="padding-top: 20px; width:60%; min-width: 800px; margin: 0 auto;">
+			<div style="margin: 0 auto; display: table;">
+				<div id="gauge" style="float: left;" ></div>
+				<div id="gaugeValue"></div>
+				<div id="roomGauge"></div>
+				<div id="roomGaugeValue"></div>
+				
+			</div>
+		</div>
+		
+		<div id="dateTime" style="text-align: center;"></div>
+		<div id="chartdiv" style="width: 100%; height: 500px; "></div>
+	</div>
+	
+	
+	
+	<script>
+	
+		// ****** GLOBAL VARIABLES ******
+		var temperatureObj = null;
+		var smsEnabled = 0;
+		var chart = null;
+		// ****** FUNCTIONS ******
+		function redrawChart()
+		{
+			var oReq = new XMLHttpRequest(); //New request object
+			var newChartData = null;
+			oReq.onload = function() {
+				newChartData = jQuery.parseJSON(this.responseText);
+				
+				chart.dataProvider = newChartData;
+				chart.validateData();
+				
+			};
+			oReq.open("get", "get_subset_temps.php", true);
+			oReq.send();
+		}
+		
+		
+		function toggleSMS(button)
+		{
+			if (button.innerHTML == "Alerts Enabled")
+			{
+				$.ajax({ type: 'POST', url: 'toggle_smsstatus.php', data: 'null', dataType:'text', success: function(response){ button.innerHTML = "Alerts Disabled"; } });
+			}
+			else
+			{
+				$.ajax({ type: 'POST', url: 'toggle_smsstatus.php', data: 'null', dataType:'text', success: function(response){ button.innerHTML = "Alerts Enabled";	} });
+			}
+		}
+		
+		function readSmsStatus()
+		{
+			$.ajax({
+				type: 'POST',
+				url: 'get_smsstatus.php',
+				data: 'null',    
+				dataType:'text',
+				success: function(response){
+					smsEnabled = response;
+					if(smsEnabled[1] == "1") 
+					{
+						document.getElementById("toggleSMS").innerHTML = "Alerts Enabled";
+					}
+					else
+					{
+						document.getElementById("toggleSMS").innerHTML = "Alerts Disabled";
+					}
+				}
+			});
+		}
+			
+		function setGaugeTemp()
+		{
+			var newTankTemp = null;
+			var newRoomTemp = null;
+			var oReqTank = new XMLHttpRequest(); //New request object
+			var oReqRoom = new XMLHttpRequest(); //New request object
+			var time = null;
+			
+			oReqTank.onload = function() {
+				newTankTemp = jQuery.parseJSON(this.responseText);
+				// Set the last db write time on the page
+				time = "Last update: " + newTankTemp[newTankTemp.length-1].time.split(" ")[1];
+				document.getElementById("dateTime").innerHTML = time;
+				$('#gauge').jqxGauge('value', parseFloat(newTankTemp[newTankTemp.length-1].tankTemp));				
+			};
+			oReqTank.open("get", "get_temp.php?temperatureProbe=tankTemp", true);
+			oReqTank.send();
+			
+			
+			oReqRoom.onload = function() {
+				newRoomTemp = jQuery.parseJSON(this.responseText);
+				$('#roomGauge').jqxGauge('value', parseFloat(newRoomTemp[newRoomTemp.length-1].roomTemp));				
+			};
+			oReqRoom.open("get", "get_temp.php?temperatureProbe=roomTemp", true);
+			oReqRoom.send();
+			
+		}
+		
+		function createChart()
+		{
+			chart = AmCharts.makeChart("chartdiv", {
+				"type": "serial",
+				"dataLoader": {
+				  "url": "get_subset_temps.php"
+				},
+				"theme": "light",
+				
+				"marginRight": 80,
+				"valueAxes": [{
+					"position": "left",
+					"title": "Temperature °C",
+					"minimum": 0,
+					"maximum": 30,
+					"fontSize": 14,
+					"titleFontSize": 14
+				}],
+				"graphs": [{
+					"id": "g1",
+					"fillAlphas": 0.4,
+					"valueField": "tankTemp",
+					 "balloonText": "<div style='margin:5px; font-size:19px;'>Tank Temp: <b>[[value]]</b></div>"
+				},{
+					"id": "g2",
+					"fillAlphas": 0.4,
+					"valueField": "roomTemp",
+					 "balloonText": "<div style='margin:5px; font-size:19px;'>Room Temp: <b>[[value]]</b></div>"
+				}],
+				"dataDateFormat": "YYYY-MM-DD JJ:NN:SS",
+				"chartScrollbar": {
+					"graph": "g1",
+					"scrollbarHeight": 80,
+					"backgroundAlpha": 0,
+					"selectedBackgroundAlpha": 0.1,
+					"selectedBackgroundColor": "#888888",
+					"graphFillAlpha": 0,
+					"graphLineAlpha": 0.5,
+					"selectedGraphFillAlpha": 0,
+					"selectedGraphLineAlpha": 1,
+					"autoGridCount": true,
+					"color": "#AAAAAA",
+					"usePeriod" : "DD"
+				  },
+				"chartCursor": {
+					"categoryBalloonDateFormat": "DD-MM-YYYY JJ:NN:SS",
+					"cursorPosition": "mouse"
+				},
+				"categoryField": "time",
+				"categoryAxis": {
+					"minPeriod": "ss",
+					"title": "Date and Time",
+					"parseDates": true,
+					"fontSize": 14,
+					"titleFontSize": 14
+					
+				},
+			}, 200);
+		}
+		
+		function createGauge()
+		{
+			$('#gauge').jqxGauge({
+				ranges: [{ startValue: 15, endValue: 22, style: { fill: '#63BBDB', stroke: '#63BBDB' }, endWidth: 10, startWidth: 1 },
+						 { startValue: 22, endValue: 24, style: { fill: '#fbd109', stroke: '#fbd109' }, endWidth: 13, startWidth: 10 },
+						 { startValue: 24, endValue: 26, style: { fill: '#4bb648', stroke: '#4bb648' }, endWidth: 14, startWidth: 13 },
+						 { startValue: 26, endValue: 27, style: { fill: '#fbd109', stroke: '#fbd109' }, endWidth: 15, startWidth: 14 },
+						 { startValue: 27	, endValue: 30, style: { fill: '#e02629', stroke: '#e02629' }, endWidth: 17, startWidth: 15 }],
+				ticksMinor: { interval: 0.1, size: '5%' },
+				ticksMajor: { interval: 1, size: '9%' },
+				caption: { offset: [0, 0], value: 'Tank Temperature', position: 'bottom',  },
+				width: 250,
+				height: 250,
+				colorScheme: 'scheme08',
+				style: { stroke: '#ffffff', 'stroke-width': '1px', fill: '#ffffff' },
+				max: 30,
+				min: 15,
+				value: 0,
+				animationDuration: 500,
+				cap: { radius: 0.04 },
+				labels:
+				 {
+					 distance: '50px',
+					 position: 'inside',
+					 interval: 2,
+					 offset: [0, -10],
+					 visible: true,
+					 formatValue: function (value) {
+						 return value;
+					 }
+				 }
+			});
+			
+			
+			$('#roomGauge').jqxGauge({
+				ranges: [{ startValue: 15, endValue: 17, style: { fill: '#63BBDB', stroke: '#63BBDB' }, endWidth: 10, startWidth: 1 },
+						 { startValue: 17, endValue: 19, style: { fill: '#fbd109', stroke: '#fbd109' }, endWidth: 13, startWidth: 10 },
+						 { startValue: 19, endValue: 22, style: { fill: '#4bb648', stroke: '#4bb648' }, endWidth: 14, startWidth: 13 },
+						 { startValue: 22, endValue: 24, style: { fill: '#fbd109', stroke: '#fbd109' }, endWidth: 15, startWidth: 14 },
+						 { startValue: 24	, endValue: 30, style: { fill: '#e02629', stroke: '#e02629' }, endWidth: 17, startWidth: 15 }],
+				ticksMinor: { interval: 0.1, size: '5%' },
+				ticksMajor: { interval: 1, size: '9%' },
+				caption: { offset: [5, 0], value: 'Room Temperature', position: 'bottom',  },
+				width: 250,
+				height: 250,
+				colorScheme: 'scheme08',
+				style: { stroke: '#ffffff', 'stroke-width': '1px', fill: '#ffffff' },
+				max: 30,
+				min: 15,
+				value: 0,
+				animationDuration: 500,
+				cap: { radius: 0.04 },
+				labels:
+				 {
+					 distance: '50px',
+					 position: 'inside',
+					 interval: 2,
+					 offset: [0, -10],
+					 visible: true,
+					 formatValue: function (value) {
+						 return value;
+					 }
+				 }
+			});
+			
+			
+			// When the Gauge Updates set the Display Value
+            $('#gauge').on('valueChanging', function (e) {
+				$('#gaugeValue').text(Math.round(e.args.value * 10) / 10 + ' °C');
+			});
+			
+			// When the Gauge Updates set the Display Value
+            $('#roomGauge').on('valueChanging', function (e) {
+				$('#roomGaugeValue').text(Math.round(e.args.value * 10) / 10 + ' °C');
+			});
+			
+		}
+		
+		// ****** EXECUTION ******
+		
+		$(document).ready(function ()
+		{
+			readSmsStatus();
+			createGauge();
+			setGaugeTemp();
+			createChart();
+		
+			window.setInterval(function(){
+				setGaugeTemp();
+			}, 3000);
+		});
+		
+		
+	</script>
+</body>
+</html>
+

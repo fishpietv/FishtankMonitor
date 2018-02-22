@@ -1,0 +1,435 @@
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>FishTank Status</title>
+	<title id='Description'>Work in progress!</title>
+	
+	<link rel="stylesheet" type="text/css" href="/nouislider.css" />
+	<link rel="stylesheet" type="text/css" href="/temp.css" />
+	<link rel="stylesheet" href="/jqwidgets/styles/jqx.base.css" type="text/css" />
+	
+	<link rel="apple-touch-icon" sizes="57x57" href="icon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="icon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="icon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="icon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="icon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="icon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="icon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="icon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="icon/apple-icon-180x180.png">
+	<link rel="icon" type="image/png" sizes="192x192"  href="icon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="icon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+	<link rel="manifest" href="icon/manifest.json">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="icon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+	
+	<script type="text/javascript" src="/scripts/jquery-3.1.1.min.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxcore.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxdraw.js"></script>
+	<script type="text/javascript" src="/jqwidgets/jqxgauge.js"></script>
+	<script type="text/javascript" src="/scripts/amcharts.js"></script>
+	<script type="text/javascript" src="/scripts/serial.js"></script>
+	<script type="text/javascript" src="/scripts/light.js"></script>
+	<script type="text/javascript" src="/scripts/dataloader.js"></script>
+	<script type="text/javascript" src="/scripts/raphael-min.js"></script>
+	<script type="text/javascript" src="/scripts/colorwheel.js" ></script> 
+	<script type="text/javascript" src="/scripts/nouislider.min.js" ></script>
+	
+</head>
+
+<body style="min-width: 1000px;">
+	<div id="globalNavContainer" style="margin: 10 10% 0 10%; min-width: 810px; ">
+		<ul>
+		  <li><a href="/index.html">Home</a></li>
+		  <li class="dropdown">
+			<a href="javascript:void(0)" class="dropbtn active">Lights</a>
+			<div class="dropdown-content">
+				<a class="active" href="/lights.html">Main Lights</a>
+			</div>
+		  </li>
+		  <li><a href="/aircon/webcam.html">Live Webcam</a></li>
+		  <li><a href="/aircon/control.html">Aircon Control</a></li>
+		  <li><a href="/graph.html">High Res Graph</a></li>
+		  <li style="float: right; padding-right: 30px;"><button class="button" id="ReloadChart" type="button" runat="server" onclick="redrawChart()" type="button">Reload Chart</button></li>
+		  <li style="float: right;"><button class="button" id="toggleSMS" type="button" runat="server" onclick="toggleSMS(this)" type="button">Loading</button></li>
+		</ul>
+	</div>
+	
+	<div id="main" style="position: relative; width: 100%; ">
+		<div id="switches" style="width: 420px; height: 80px; margin: 0 auto; margin-top: 20px;"> 
+			<div id="auto_override" style="width: 70px; float: left;" >
+				<label class="switch">
+				  <input type="checkbox" id="auto_overridestatus" onclick="toggleLights('override')">
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">Automatic Lights Override</div>
+			</div>
+			<div id="main_power" style="width: 70px; float: left; opacity:0.2; display: none;" >
+				<label class="switch">
+				  <input type="checkbox" id="main_lightstatus" onclick="toggleLights('main')" disabled="true">
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">Tank Lights Power</div>
+			</div>
+			<div id="rgb_power" style="width: 70px; float: left; opacity:0.2;" >
+				<label class="switch">
+				  <input type="checkbox" id="rgb_lightstatus" onclick="toggleLights('rgb')" disabled >
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">RGB Lights Power</div>
+			</div>
+			<div id="rgbw_power" style="width: 70px; float: left; opacity:0.2;" >
+				<label class="switch">
+				  <input type="checkbox" id="rgbw_lightstatus" onclick="toggleLights('rgbw')" disabled >
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">RGBW Lights Power</div>
+			</div>
+			<div id="clouds" style="width: 70px; float: left; opacity:0.2;" >
+				<label class="switch">
+				  <input type="checkbox" id="clouds_status" onclick="toggleLights('clouds')" disabled >
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">Cloud Mode</div>
+			</div>
+			<div id="storm" style="width: 70px; float: left; opacity:0.2;" >
+				<label class="switch">
+				  <input type="checkbox" id="storm_status" onclick="toggleLights('storm')" disabled >
+				  <div class="slider round"></div>
+				</label>
+				<div style="text-align: center; font-size: 12px;">Storm Mode</div>
+			</div>
+		</div>
+		<div id='colourselection' style="width: 420px; margin: 0 auto; margin-top:10px; " >
+			<div id='colorwheelarea' >
+				<div class='colorwheel' id='colorwheel' style="float: left; opacity: 0.1; pointer-events: none;"/>
+				<div id='colorwheelvalues' style="float: left; text-align: center; width: inherit; margin-top: 10px;"></div>
+			</div>
+			<div id="sliderarea" style="margin-left: 20px; float: left; height: 300px; width: 100px; text-align: center; opacity: 0.1; pointer-events: none;">
+				<div id="rgbwtext" style="height: 16px; font-size: 12px; ">RGBW Intensity</div>
+				<div id="slidervalue" style="height: 40px;"></div>
+				<div id="slider" style="height: 250px; margin: 0 auto;"></div>
+			</div>
+			
+		</div>
+	</div>
+	
+	
+	
+	<script>
+	
+		function displayPicker(colour)
+		{
+			var cw = Raphael.colorwheel($("#colorwheelarea .colorwheel"),300,180).color(colour);
+			document.getElementById("colorwheelvalues").innerHTML = "R:" + parseInt(cw.color().r) + "  G:" + parseInt(cw.color().g) + "  B:" + parseInt(cw.color().b);
+			cw.onchange(colour_changed);
+			
+			function colour_changed()
+			{
+				document.getElementById("colorwheelvalues").innerHTML = "R:" + parseInt(cw.color().r) + "  G:" + parseInt(cw.color().g) + "  B:" + parseInt(cw.color().b);
+				$.ajax({  
+					type: 'POST',  
+					url: '/set_lightcolour.php', 
+					data: {type: "rgb", colour: cw.color().hex },
+					success: function(response) {
+						//alert(response);
+					},
+					error: function(response) {
+						alert("Issue setting light colour");
+					}
+				});
+			}
+		}
+		
+		function startPicker()
+		{
+			var colour = 'FFFFFF';
+			
+			$.ajax({
+				type: 'GET',
+				url: '/get_lightcolour.php',
+				data: 'null',    
+				dataType:'text',
+				success: function(response){
+					colour = response;
+					displayPicker(colour);
+					
+				},
+				error: function(response){
+					alert("Issue fetching colour");
+					displayPicker(colour);	
+				}
+			});
+			
+		}
+		
+		function getLightStatus()
+		{
+			var status = "0";
+			$.ajax({
+				type: 'GET',
+				url: '/get_lightstatus.php',
+				data: 'null',    
+				dataType:'text',
+				success: function(response){
+					statusMain = response[0];
+					statusRGB = response[2];
+					statusRGBW = response[4];
+					statusOverride = response[6];
+					statusStorm = response[8];
+			
+					if(statusOverride == "1")
+					{
+						document.getElementById("auto_overridestatus").checked = true;
+						document.getElementById("rgbw_power").style.opacity = null;
+						document.getElementById("rgbw_lightstatus").disabled = false;
+						document.getElementById("rgb_power").style.opacity = null;
+						document.getElementById("rgb_lightstatus").disabled = false;
+						document.getElementById("clouds").style.opacity = null;
+						document.getElementById("clouds_status").disabled = false;
+						document.getElementById("storm").style.opacity = null;
+						document.getElementById("storm_status").disabled = false;
+
+						if(statusMain == "1")
+						{
+							document.getElementById("main_lightstatus").checked = true;
+						}
+						if(statusRGBW == "1")
+						{
+							document.getElementById("rgbw_lightstatus").checked = true
+							document.getElementById("sliderarea").style.opacity = null;
+							document.getElementById("sliderarea").style.pointerEvents = null;
+						}
+						if(statusRGB == "1")
+						{
+							document.getElementById("rgb_lightstatus").checked = true;
+							document.getElementById("colorwheel").style.opacity = null;
+							document.getElementById("colorwheel").style.pointerEvents = null;
+						}
+						if(statusStorm == "1")
+						{
+							document.getElementById("storm_status").checked = true
+							
+							document.getElementById("rgbw_power").style.opacity = "0.2";
+							document.getElementById("rgbw_lightstatus").disabled = true;
+							document.getElementById("rgb_power").style.opacity = "0.2";
+							document.getElementById("rgb_lightstatus").disabled = true;
+							document.getElementById("clouds").style.opacity = "0.2";
+							document.getElementById("clouds_status").disabled = true;
+				
+						}
+					}
+				}
+			});
+		}
+		
+		function toggleLights(light_set)
+		{
+			mode = false;
+			if(light_set == "override")
+			{
+				if(document.getElementById("auto_overridestatus").checked == false)
+				{
+					document.getElementById("sliderarea").style.opacity = "0.2";
+					document.getElementById("sliderarea").disabled;
+					document.getElementById("sliderarea").style.pointerEvents = 'none';
+					document.getElementById("colorwheel").style.opacity = "0.2";
+					document.getElementById("colorwheel").disabled;
+					document.getElementById("colorwheel").style.pointerEvents = 'none';
+					
+					document.getElementById("main_power").style.opacity = "0.2";
+					document.getElementById("main_lightstatus").checked = false;
+					document.getElementById("main_lightstatus").disabled = true;
+					
+					document.getElementById("rgb_power").style.opacity = "0.2";
+					document.getElementById("rgb_lightstatus").checked = false;
+					document.getElementById("rgb_lightstatus").disabled = true;
+					
+					document.getElementById("rgbw_power").style.opacity = "0.2";
+					document.getElementById("rgbw_lightstatus").checked = false;
+					document.getElementById("rgbw_lightstatus").disabled = true;
+
+					document.getElementById("clouds").style.opacity = "0.2";
+					document.getElementById("clouds_status").checked = false;
+					document.getElementById("clouds_status").disabled = true;
+
+					document.getElementById("storm").style.opacity = "0.2";
+					document.getElementById("storm_status").checked = false;
+					document.getElementById("storm_status").disabled = true;
+	
+	
+	
+				}
+				else
+				{
+					document.getElementById("main_power").style.opacity = null;
+					document.getElementById("main_lightstatus").disabled = null;
+					document.getElementById("rgbw_power").style.opacity = null;
+					document.getElementById("rgbw_lightstatus").disabled = null;
+					document.getElementById("rgb_power").style.opacity = null;
+					document.getElementById("rgb_lightstatus").disabled = null;
+					document.getElementById("clouds").style.opacity = null;
+					document.getElementById("clouds_status").disabled = false;
+					document.getElementById("storm").style.opacity = null;
+					document.getElementById("storm_status").disabled = false;
+					mode = true;
+				}
+			}
+			
+			if(light_set == "rgb")
+			{
+				if(document.getElementById("rgb_lightstatus").checked == false)
+				{
+					document.getElementById("colorwheel").style.opacity = "0.2";
+					document.getElementById("colorwheel").style.pointerEvents = 'none';
+				}
+				else
+				{
+					document.getElementById("colorwheel").style.opacity = null;
+					document.getElementById("colorwheel").style.pointerEvents = null;
+					mode = true;
+				}
+			}
+			if(light_set == "rgbw")
+			{
+				if(document.getElementById("rgbw_lightstatus").checked == false)
+				{
+					document.getElementById("sliderarea").style.opacity = "0.2";
+					document.getElementById("sliderarea").style.pointerEvents = 'none';
+				}
+				else
+				{
+					document.getElementById("sliderarea").style.opacity = null;
+					document.getElementById("sliderarea").style.pointerEvents = null;
+					mode = true;
+				}
+			}
+			if(light_set == "storm")
+			{
+				if(document.getElementById("storm_status").checked == true)
+				{
+					// storm mode on
+					mode = true;
+					
+					document.getElementById("sliderarea").style.opacity = "0.2";
+					document.getElementById("sliderarea").disabled;
+					document.getElementById("sliderarea").style.pointerEvents = 'none';
+					document.getElementById("colorwheel").style.opacity = "0.2";
+					document.getElementById("colorwheel").disabled;
+					document.getElementById("colorwheel").style.pointerEvents = 'none';
+					
+					document.getElementById("rgb_power").style.opacity = "0.2";
+					document.getElementById("rgb_lightstatus").checked = false;
+					document.getElementById("rgb_lightstatus").disabled = true;
+					
+					document.getElementById("rgbw_power").style.opacity = "0.2";
+					document.getElementById("rgbw_lightstatus").checked = false;
+					document.getElementById("rgbw_lightstatus").disabled = true;
+
+					document.getElementById("clouds").style.opacity = "0.2";
+					document.getElementById("clouds_status").checked = false;
+					document.getElementById("clouds_status").disabled = true;
+					
+				}
+				else
+				{
+					// reset controls
+					document.getElementById("rgbw_power").style.opacity = null;
+					document.getElementById("rgbw_lightstatus").disabled = null;
+					document.getElementById("rgb_power").style.opacity = null;
+					document.getElementById("rgb_lightstatus").disabled = null;
+					document.getElementById("clouds").style.opacity = null;
+					document.getElementById("clouds_status").disabled = false;
+				}
+			}
+			
+			
+			
+			$.ajax({
+				type: 'POST',
+				url: '/toggle_lightstatus.php',
+				data: {type: light_set, mode: mode},
+				dataType:'text',
+				success: function(response){
+					//alert("Response: " + response );
+				},
+				error: function(response){
+					//alert("Issue changing light status: " + response.StatusText );
+				}
+			});
+		}
+		
+		function startIntensitySlider()
+		{
+			var slider = document.getElementById('slider');
+			var intensity = 0;
+			
+			$.ajax({
+				url: '/get_whiteintensity.php',
+				type: 'GET',
+				data: 'null',
+				dataType:'text',
+				success: function(response){
+					intensity = Math.round(parseInt(response.replace("#", ""), 16) / 255 * 100);
+					intensity_hex = parseInt(intensity*2.56).toString(16);
+					//alert(intensity);
+					noUiSlider.create(slider, {
+						//start: [parseInt(intensity)],
+						start: [100-intensity],
+						connect: [false, true],
+						orientation: 'vertical',
+						step: 2,
+						range: {
+							'min': 0,
+							'max': 100
+						}
+					});
+					
+					document.getElementById('rgbwtext').style.display = null;
+					document.getElementById('slidervalue').innerHTML = parseInt(intensity) + "%";
+					
+					slider.noUiSlider.on('slide', function ( values, handle ) {
+						//alert(values);
+						intensity = parseInt(100-values);
+						intensity_hex = parseInt(Math.round(intensity*2.55)).toString(16);
+						document.getElementById('slidervalue').innerHTML = intensity+"%";
+						//alert("#" + intensity_hex);
+						$.ajax({  
+							type: 'POST',  
+							url: '/set_lightcolour.php', 
+							data: {type: "white", intensity: "#" + intensity_hex },
+							success: function(response) {
+								//alert(response);
+							},
+							error: function(response, status, error) {
+								alert("Issue setting white intensity " + response.responseText);
+							}
+						});
+					});	
+					
+				},
+				error: function(response){
+					alert("Issue getting white intensity " + response.responseText );
+				}
+			});
+			
+			
+		}
+				
+		$(document).ready(function ()
+		{
+			startPicker();
+			getLightStatus();
+			startIntensitySlider();
+			
+		});
+		
+		
+		
+		
+	</script>
+</body>
+</html>
+
