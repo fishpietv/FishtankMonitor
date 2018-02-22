@@ -20,7 +20,8 @@ passwd
 # Setup Samba Share
  - This allows you to transfer files to the Pi ! You need to find out the pi's IP address and then you can browse to it using \\192.168.x.x   (or whetever your home network would have setup the Pi's address as)
  in terminal run 
- ```sudo ifconfig
+ ```
+ sudo ifconfig
 ```
 and then just look for the inet addr: line for the relevant interface e.g. the Wifi Adapter
   
