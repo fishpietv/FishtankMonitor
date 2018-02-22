@@ -18,6 +18,12 @@ network={
 passwd
 
 # Setup Samba Share
+ - This allows you to transfer files to the Pi ! You need to find out the pi's IP address and then you can browse to it using \\192.168.x.x   (or whetever your home network would have setup the Pi's address as)
+ in terminal run 
+ ```sudo ifconfig
+```
+and then just look for the inet addr: line for the relevant interface e.g. the Wifi Adapter
+  
 sudo apt-get install samba samba-common-bin
 sudo nano /etc/samba/smb.conf 
 
@@ -61,7 +67,7 @@ sudo apt-get install mysql-server --fix-missing
 sudo apt-get install mysql-client php5-mysql
 sudo apt-get install python-mysqldb
 
-# Copy All the temperature sensing files to your home drive
+# Copy the TemperatureSensor folder your Pi home drive 
 
 # Restore the database
 Cd TemperatureSensor
@@ -87,8 +93,8 @@ sudo apt-get install php5 libapache2-mod-php5 -y
 sudo apt-get install python-mysqldb
 
 
-# Copy backup files into the /var/www/html folder
-sudo chown -R pi /var/www/html 
+# Copy backup files from the Apache folder into the /var/www/html folder
+run ```sudo chown -R pi /var/www/html ```
 
 # Install LIRC for Aircon
 sudo apt-get install lirc
