@@ -168,7 +168,7 @@ sudo apt-get install python-pigpio
 
 # Setup Cron
 sudo crontab -e 
-
+```
 @reboot sudo python /home/pi/TemperatureSensor/temperaturelogger.py >> /home/pi/TemperatureSensor/log.txt
 @reboot sudo pigpiod
 @reboot sudo python /home/pi/Lights/autolights.py reboot >> /home/pi/Lights/log.txt
@@ -179,6 +179,6 @@ sudo crontab -e
 #30 21 * * * sudo python /home/pi/Lights/autolights.py dawnlow
 #0 0 * * *  sudo python /home/pi/Lights/autolights.py night
 0 1 * * * sudo sh /home/pi/TemperatureSensor/backupDB.sh
-
+```
 
 Job done 
